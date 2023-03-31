@@ -3,10 +3,9 @@ import time
 import requests
 import socket
 import tkinter as tk
-import pystray
-from PIL import Image, ImageTk
 import threading
-import sys
+import subprocess
+
 
 def getLocalIp():
     return socket.gethostbyname(socket.gethostname())
@@ -25,9 +24,9 @@ def loopFunction():
     renewTime = int(renewTime_entry.get()) * 60
 
     while activeLoop: 
-        os.system('ipconfig /release')
+        subprocess.run(['ipconfig', '/release'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         time.sleep(3)
-        os.system('ipconfig /renew')
+        subprocess.run(['ipconfig', '/renew'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         time.sleep(renewTime)
         updateIpLabels()
         root.update()
@@ -35,51 +34,31 @@ def loopFunction():
 def executeLoop():
     threading.Thread(target=loopFunction, daemon=True).start()
 
-def onQuit():
-    root.quit()
-    root.destroy()
-    tray.stop()
 
-def toggleVisibility():
-    if root.state() == 'normal':
-        root.withdraw()
-    else:
-        root.deiconify()
-
-    return True
-
-def createSystray():
-    global tray
-    menu = (pystray.MenuItem('Abrir', toggleVisibility), pystray.MenuItem("Sair", onQuit))
-    tray = pystray.Icon("ip-renewal","IP Renewal", menu)
-
-if __name__ == '__main__':
-    root = tk.Tk()
-    root.geometry("250x180")
-    root.title ("Renovador de IP")
+root = tk.Tk()
+root.geometry("300x180")
+root.title ("Renovador de IP")
 
 
-    renewTime_label = tk.Label(root, text="Tempo para mudar o IP(minutos):")
-    renewTime_label.pack()
-    renewTime_entry = tk.Entry(root)
-    renewTime_entry.pack()
+renewTime_label = tk.Label(root, text="Tempo para mudar o IP(minutos):")
+renewTime_label.pack()
+renewTime_entry = tk.Entry(root)
+renewTime_entry.pack()
 
-    activeLoop_var = tk.BooleanVar()
-    activeLoop_var.set(True)
-    activeLoop_checkbutton = tk.Checkbutton(root , text="Ativar Programa", variable=activeLoop_var)
-    activeLoop_checkbutton.pack()
+activeLoop_var = tk.BooleanVar()
+activeLoop_var.set(True)
+activeLoop_checkbutton = tk.Checkbutton(root , text="Ativar Programa", variable=activeLoop_var)
+activeLoop_checkbutton.pack()
 
-    startButton = tk.Button(root, text="Iniciar", command=executeLoop)
-    startButton.pack()
+startButton = tk.Button(root, text="Iniciar", command=executeLoop)
+startButton.pack()
 
-    localIpLabel = tk.Label(root, text="IP local: ")
-    localIpLabel.pack()
+localIpLabel = tk.Label(root, text="IP local: ")
+localIpLabel.pack()
 
-    publicIpLabel = tk.Label(root, text="IP público: ")
-    publicIpLabel.pack()
+publicIpLabel = tk.Label(root, text="IP público: ")
+publicIpLabel.pack()
 
-    createSystray()
-    root.withdraw()
-    tray.run()
-    updateIpLabels()
-    root.mainloop()
+    
+updateIpLabels()
+root.mainloop()
